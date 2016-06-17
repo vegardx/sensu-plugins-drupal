@@ -15,13 +15,13 @@ notifications:
     on_failure: always
 script:
 - bundle exec rake default
-- gem build sensu-plugins-feature-requests.gemspec
-- gem install sensu-plugins-feature-requests-*.gem
+- gem build sensu-plugins-drupal.gemspec
+- gem install sensu-plugins-drupal-*.gem
 deploy:
   provider: rubygems
   api_key:
     secure: JUGCtwpwI0L/hspq2UORjPbsh0u8PmjPestIvRO9fsxBFX8TIqLQ0UoqS3wCeZENJm+qaNeIzOTeqm4tzYgKjthsWw9R8YioHSANCkJGUqjujA6awXmWyay+UP5PXdDEAqDppqrUucdE3gstDvPJgA2KXHjwbAeHjgfzZioSBUg=
-  gem: sensu-plugins-feature-requests
+  gem: sensu-plugins-drupal
   on:
     tags: true
     all_branches: true
@@ -29,4 +29,4 @@ deploy:
     rvm: 2.0
     rvm: 2.1
     rvm: 2.2
-    repo: sensu-plugins/sensu-plugins-feature-requests
+    repo: sensu-plugins/sensu-plugins-drupal
