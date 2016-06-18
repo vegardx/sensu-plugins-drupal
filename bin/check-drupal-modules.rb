@@ -33,6 +33,7 @@
 
 require 'sensu-plugin/check/cli'
 require 'json'
+require 'open4'
 
 class CheckDrupalModules < Sensu::Plugin::Check::CLI
   option :path,
@@ -47,20 +48,21 @@ class CheckDrupalModules < Sensu::Plugin::Check::CLI
          description: 'Exclude based on regexp. Use with caution.'
 
   def run
-    # Get output from drush
-    cmd = "drush ups --format=json --security-only --root=#{config[:path]}"
-    stdout = `#{cmd}`
+    # Grab data from Drupal using drush
+    pid, _stdin, stdout, _stderr = Open4.popen4 "drush ups --format=json --security-only --root=#{config[:path]}"
+    _ignored, status = Process.waitpid2 pid
+
+    # Make sure we go criical if drush returns non-zero value
+    critical 'Drush not found in local path or exited with a non-zero value' unless status.exitstatus == 0
 
     # Read the incoming JSON data from stdout.
-    events = JSON.parse(stdout)
+    events = JSON.parse(stdout.read) unless stdout.read.nil? || stdout.read.empty?
 
     # Filter out excluded keys
-    unless config[:exclude].nil?
-      events.delete_if { |key, value| key.to_s.match(/#{config[:exclude]}/) }
-    end
+    events.delete_if { |key| key.to_s.match(/#{config[:exclude]}/) } unless config[:exclude].nil?
 
     # Trigger based on events
-    unless events.nil?
+    if events
       events.each do |key, value|
         puts "#{key} - #{value['existing_version']} -> #{value['candidate_version']}"
       end
