@@ -48,6 +48,7 @@ class CheckDrupalStatus < Sensu::Plugin::Check::CLI
          short: '-s SEVERITY',
          long: '--severity SEVERITY',
          default: 1,
+         proc: proc(&:to_i),
          description: 'Filter based on severity greater than or equal to. Values from -1 to 2.'
 
   option :exclude,
