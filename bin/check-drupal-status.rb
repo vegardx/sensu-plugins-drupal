@@ -56,12 +56,12 @@ class CheckDrupalStatus < Sensu::Plugin::Check::CLI
          description: 'Comma-separated list to ignore.'
 
   def run
-    # Grab data from Drupal using drush
-    pid, _stdin, stdout, _stderr = Open4.popen4 "drush core-requirements --format=json --severity=1 --root=#{config[:path]} --ignore=#{config[:exclude]}"
-    _ignored, status = Process.waitpid2 pid
+    # Check that drush is in local path, error out if not.
+    unknown 'Unable to find drush in local path.' if find_executable('drush').nil?
 
-    # Make sure we go criical if drush returns non-zero value
-    critical 'Drush not found in local path or exited with a non-zero value' unless status.exitstatus == 0
+    # Grab data from Drupal using drush
+    pid, _stdin, stdout, _stderr = Open4.popen4 "drush core-requirements --format=json --severity=#{config[:severity]} --root=#{config[:path]} --ignore=#{config[:exclude]}"
+    _ignored, status = Process.waitpid2 pid
 
     # Read the incoming JSON data from stdout.
     events = JSON.parse(stdout.read) unless stdout.read.nil? || stdout.read.empty?
@@ -73,7 +73,7 @@ class CheckDrupalStatus < Sensu::Plugin::Check::CLI
       end
       critical
     else
-      ok 'No reported errors of severity higher than: ' + config[:severity].to_s
+      ok 'No reported errors of severity higher than: ' + config[:severity]
     end
   end
 end

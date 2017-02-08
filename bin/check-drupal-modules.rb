@@ -48,12 +48,12 @@ class CheckDrupalModules < Sensu::Plugin::Check::CLI
          description: 'Exclude based on regexp. Use with caution.'
 
   def run
+    # Check that drush is in local path, error out if not.
+    unknown 'Unable to find drush in local path.' if find_executable('drush').nil?
+
     # Grab data from Drupal using drush
     pid, _stdin, stdout, _stderr = Open4.popen4 "drush ups --format=json --security-only --root=#{config[:path]}"
     _ignored, status = Process.waitpid2 pid
-
-    # Make sure we go criical if drush returns non-zero value
-    critical 'Drush not found in local path or exited with a non-zero value' unless status.exitstatus == 0
 
     # Read the incoming JSON data from stdout.
     events = JSON.parse(stdout.read) unless stdout.read.nil? || stdout.read.empty?
